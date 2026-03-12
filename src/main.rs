@@ -54,6 +54,10 @@ fn main() -> anyhow::Result<()> {
 
 #[tokio::main]
 async fn run_server(config_path: String) -> anyhow::Result<()> {
+    tokio_rustls::rustls::crypto::aws_lc_rs::default_provider()
+        .install_default()
+        .expect("failed to install default CryptoProvider");
+
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
