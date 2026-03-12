@@ -26,14 +26,14 @@ Build a Linux amd64 release binary and upload it to the GitHub release page for 
 
 3. **Verify the binary**:
    ```
-   file target/x86_64-unknown-linux-musl/release/https-proxy
+   file target/x86_64-unknown-linux-musl/release/https_proxy
    ```
    Expect: `ELF 64-bit LSB executable, x86-64, statically linked, stripped`
 
 4. **Zip the binary**:
    ```
    cd target/x86_64-unknown-linux-musl/release
-   zip https_proxy-$ARGUMENTS-linux-amd64.zip https-proxy
+   zip https_proxy-$ARGUMENTS-linux-amd64.zip https_proxy
    ```
 
 5. **Upload to the release** (replace existing asset if present):
@@ -48,7 +48,7 @@ Build a Linux amd64 release binary and upload it to the GitHub release page for 
 
 ## Notes
 
-- The binary name is `https-proxy` (with hyphen), per `[[bin]]` in Cargo.toml.
+- The binary name is `https_proxy` (with underscore), per `[[bin]]` in Cargo.toml.
 - The zip asset name uses underscore: `https_proxy-<tag>-linux-amd64.zip`.
 - Uses musl for a fully static binary — no glibc dependency on the target host.
 - The `--clobber` flag replaces any existing asset with the same name.

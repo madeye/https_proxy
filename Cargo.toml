@@ -13,7 +13,7 @@ name = "https_proxy"
 path = "src/lib.rs"
 
 [[bin]]
-name = "https-proxy"
+name = "https_proxy"
 path = "src/main.rs"
 
 [dependencies]

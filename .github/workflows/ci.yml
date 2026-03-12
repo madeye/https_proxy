@@ -80,4 +80,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: https_proxy-${{ matrix.target }}
-          path: target/${{ matrix.target }}/release/https-proxy
+          path: target/${{ matrix.target }}/release/https_proxy
