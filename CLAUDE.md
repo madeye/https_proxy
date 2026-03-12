@@ -19,15 +19,16 @@ Stealth HTTPS forward proxy that auto-obtains TLS certs via ACME/Let's Encrypt a
 
 ### Request Flow
 
-1. **TLS accept** (`tls.rs`): ACME acceptor handles TLS-ALPN-01 challenges transparently; regular connections get a TLS stream with auto-renewed Let's Encrypt cert.
+1. **TLS accept** (`tls.rs`): ACME acceptor handles TLS-ALPN-01 challenges transparently; regular connections get a TLS stream (HTTP/1.1 or HTTP/2) with auto-renewed Let's Encrypt cert.
 2. **Stealth gate** (`stealth.rs`): Non-proxy requests (no absolute URI, no CONNECT) → fake nginx 404.
-3. **Auth gate** (`auth.rs`): Invalid/missing `Proxy-Authorization: Basic ...` → same fake 404 (not 407, to avoid revealing it's a proxy).
+3. **Auth gate** (`auth.rs`): Proxy requests with invalid/missing `Proxy-Authorization: Basic ...` → 407 with `Proxy-Authenticate` header (enables browser auth prompts). Non-proxy requests → fake 404.
 4. **CONNECT tunnel** (`proxy.rs`): `hyper::upgrade::on()` + `tokio::io::copy_bidirectional` to target.
 5. **HTTP forward** (`proxy.rs`): Rewrites absolute URI to path-only, strips proxy headers, forwards via `hyper::client::conn::http1`.
 
 ### Key Design Decisions
 
 - **Stealth for non-proxy traffic**: Non-proxy requests (no absolute URI, no CONNECT) return nginx 404. Proxy requests with missing/wrong auth get 407 so real clients (Chrome) can authenticate.
+- **HTTP/2 extended CONNECT**: `enable_connect_protocol()` (RFC 8441) enables browser proxy compatibility (Chrome, Firefox).
 - **hyper 1.x with upgrades**: `http1::Builder` must use `.with_upgrades()` for CONNECT tunneling to work.
 - **Proxy detection**: `req.uri().authority().is_some()` (absolute URI) or `Method::CONNECT`.
 - **ACME on port 443 only**: Uses TLS-ALPN-01 challenge type, no port 80 listener needed.

@@ -516,15 +516,20 @@
         <div class="feature-card">
           <div class="feature-icon" style="background: rgba(88,166,255,0.1); color: var(--accent);">&#x1f47b;</div>
           <h3>Stealth Mode</h3>
-          <p>Non-proxy requests and failed auth both return an identical nginx-style 404. Indistinguishable from a misconfigured web server.</p>
+          <p>Non-proxy requests get an identical nginx-style 404. Proxy requests with bad auth get a standard 407 so real clients can authenticate.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon" style="background: rgba(210,153,34,0.1); color: var(--orange);">&#x1f500;</div>
+          <div class="feature-icon" style="background: rgba(210,153,34,0.1); color: var(--orange);">&#x1f310;</div>
+          <h3>HTTP/2 Support</h3>
+          <p>Full HTTP/2 with extended CONNECT protocol (RFC 8441) for native browser proxy compatibility including Chrome and Firefox.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(188,140,255,0.1); color: var(--purple);">&#x1f500;</div>
           <h3>CONNECT Tunneling</h3>
           <p>Full HTTPS tunnel support via HTTP CONNECT with bidirectional streaming for proxying encrypted traffic.</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon" style="background: rgba(188,140,255,0.1); color: var(--purple);">&#x27a1;&#xfe0f;</div>
+          <div class="feature-icon" style="background: rgba(63,185,80,0.1); color: var(--green);">&#x27a1;&#xfe0f;</div>
           <h3>HTTP Forwarding</h3>
           <p>Plain HTTP proxy requests forwarded transparently to upstream servers with proxy headers stripped.</p>
         </div>
@@ -552,7 +557,7 @@
           <div class="flow-num">1</div>
           <div class="flow-content">
             <h4>TLS Termination</h4>
-            <p>All connections terminate TLS with a valid Let's Encrypt certificate. ACME challenges are handled transparently.</p>
+            <p>All connections terminate TLS with a valid Let's Encrypt certificate (HTTP/1.1 and HTTP/2). ACME challenges are handled transparently.</p>
           </div>
         </div>
         <div class="flow-step">
@@ -566,7 +571,7 @@
           <div class="flow-num">3</div>
           <div class="flow-content">
             <h4>Auth Gate</h4>
-            <p>Proxy requests with missing or invalid credentials get the same fake 404 &mdash; never a 407, to avoid revealing the proxy.</p>
+            <p>Proxy requests with missing or invalid credentials get a 407 with <code>Proxy-Authenticate</code> header, enabling browser auth prompts.</p>
           </div>
         </div>
         <div class="flow-step">
@@ -623,9 +628,9 @@
 <span class="command">curl</span> <span class="string">https://proxy.example.com/</span>
 <span class="output"># =&gt; 404 Not Found (Server: nginx/1.24.0)</span>
 
-<span class="comment"># Wrong credentials &mdash; same 404, no information leak</span>
+<span class="comment"># Wrong credentials &mdash; 407 auth challenge (enables browser auth prompts)</span>
 <span class="command">curl</span> <span class="flag">--proxy</span> <span class="string">https://wrong:creds@proxy.example.com:443</span> https://example.com
-<span class="output"># =&gt; 404 Not Found</span></pre></div>
+<span class="output"># =&gt; 407 Proxy Authentication Required</span></pre></div>
       </div>
     </div>
   </section>
@@ -670,7 +675,7 @@
   <section class="download">
     <div class="container">
       <div class="section-title">Download</div>
-      <h2 class="section-heading">Prebuilt binaries &mdash; v0.1.0</h2>
+      <h2 class="section-heading">Prebuilt binaries &mdash; v0.2.0</h2>
       <div class="download-grid">
         <div class="download-card">
           <div class="download-card-header">
@@ -680,11 +685,11 @@
               <p>Apple Silicon &mdash; M1, M2, M3, M4</p>
             </div>
           </div>
-          <a href="https://github.com/madeye/https_proxy/releases/download/v0.1.0/https_proxy-v0.1.0-darwin-arm64.zip" class="btn-download">
+          <a href="https://github.com/madeye/https_proxy/releases/download/v0.2.0/https_proxy-v0.2.0-darwin-arm64.zip" class="btn-download">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
             Download .zip
           </a>
-          <div class="download-meta"><code>https_proxy-v0.1.0-darwin-arm64.zip</code></div>
+          <div class="download-meta"><code>https_proxy-v0.2.0-darwin-arm64.zip</code></div>
         </div>
         <div class="download-card">
           <div class="download-card-header">
@@ -694,11 +699,11 @@
               <p>GNU/Linux &mdash; AMD64 / Intel 64</p>
             </div>
           </div>
-          <a href="https://github.com/madeye/https_proxy/releases/download/v0.1.0/https_proxy-v0.1.0-linux-amd64.zip" class="btn-download">
+          <a href="https://github.com/madeye/https_proxy/releases/download/v0.2.0/https_proxy-v0.2.0-linux-amd64.zip" class="btn-download">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
             Download .zip
           </a>
-          <div class="download-meta"><code>https_proxy-v0.1.0-linux-amd64.zip</code></div>
+          <div class="download-meta"><code>https_proxy-v0.2.0-linux-amd64.zip</code></div>
         </div>
       </div>
     </div>
