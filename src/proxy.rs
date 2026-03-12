@@ -20,7 +20,10 @@ use crate::net;
 /// that upgrades the connection and copies bytes bidirectionally between the
 /// client and the target host. Optionally uses TCP Fast Open for the outgoing
 /// connection when `fast_open` is `true`.
-pub async fn handle_connect(req: Request<Incoming>, fast_open: bool) -> anyhow::Result<Response<Full<Bytes>>> {
+pub async fn handle_connect(
+    req: Request<Incoming>,
+    fast_open: bool,
+) -> anyhow::Result<Response<Full<Bytes>>> {
     let authority = req
         .uri()
         .authority()
@@ -75,7 +78,10 @@ pub async fn handle_connect(req: Request<Incoming>, fast_open: bool) -> anyhow::
 /// path-only (`/path`), removes `Proxy-Authorization` and `Proxy-Connection`
 /// headers, connects to the upstream server, and relays the response back
 /// to the client.
-pub async fn handle_forward(mut req: Request<Incoming>, fast_open: bool) -> anyhow::Result<Response<Full<Bytes>>> {
+pub async fn handle_forward(
+    mut req: Request<Incoming>,
+    fast_open: bool,
+) -> anyhow::Result<Response<Full<Bytes>>> {
     let uri = req.uri().clone();
     let host = uri
         .authority()

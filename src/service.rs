@@ -94,14 +94,10 @@ pub fn uninstall_service() -> anyhow::Result<()> {
     let _ = run_cmd("systemctl", &["disable", SERVICE_NAME]);
 
     // Remove files
-    for path in [
-        &unit_path,
-        &format!("/usr/local/bin/{SERVICE_NAME}"),
-    ] {
+    for path in [&unit_path, &format!("/usr/local/bin/{SERVICE_NAME}")] {
         if Path::new(path).exists() {
             println!("Removing {path}");
-            fs::remove_file(path)
-                .with_context(|| format!("failed to remove {path}"))?;
+            fs::remove_file(path).with_context(|| format!("failed to remove {path}"))?;
         }
     }
 

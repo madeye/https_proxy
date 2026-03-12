@@ -183,8 +183,7 @@ fn set_tcp_fastopen_connect(socket: &Socket) -> anyhow::Result<()> {
             )
         };
         if ret != 0 {
-            return Err(std::io::Error::last_os_error())
-                .context("setsockopt TCP_FASTOPEN_CONNECT");
+            return Err(std::io::Error::last_os_error()).context("setsockopt TCP_FASTOPEN_CONNECT");
         }
     }
 

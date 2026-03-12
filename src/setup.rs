@@ -305,14 +305,12 @@ impl SetupApp {
         .split(area);
 
         // Title
-        let title = Paragraph::new(Line::from(vec![
-            Span::raw("  HTTPS Proxy Setup").bold(),
-        ]))
-        .block(
-            Block::default()
-                .borders(Borders::ALL)
-                .border_style(Style::default().fg(Color::Cyan)),
-        );
+        let title = Paragraph::new(Line::from(vec![Span::raw("  HTTPS Proxy Setup").bold()]))
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_style(Style::default().fg(Color::Cyan)),
+            );
         frame.render_widget(title, outer[0]);
 
         // Main form
@@ -324,8 +322,7 @@ impl SetupApp {
         frame.render_widget(form_block, outer[1]);
 
         let rows = Layout::vertical(
-            std::iter::repeat(Constraint::Length(2))
-                .take(FIELDS.len())
+            std::iter::repeat_n(Constraint::Length(2), FIELDS.len())
                 .chain(std::iter::once(Constraint::Min(0)))
                 .collect::<Vec<_>>(),
         )
@@ -399,9 +396,7 @@ impl SetupApp {
         let status_text = match &self.status {
             Some(msg) => msg.clone(),
             None => match self.mode {
-                Mode::Navigate => {
-                    "↑↓ navigate  Enter edit  d delete user  s save  q quit".into()
-                }
+                Mode::Navigate => "↑↓ navigate  Enter edit  d delete user  s save  q quit".into(),
                 Mode::Edit => "Type to edit  Enter confirm  Esc cancel".into(),
                 Mode::UserAdd => "Tab next field  Enter confirm  Esc cancel".into(),
             },
@@ -413,8 +408,11 @@ impl SetupApp {
         } else {
             Style::default().fg(Color::DarkGray)
         };
-        let status = Paragraph::new(Span::styled(format!("  {status_text}"), status_style))
-            .block(Block::default().borders(Borders::ALL).border_style(Style::default().fg(Color::Gray)));
+        let status = Paragraph::new(Span::styled(format!("  {status_text}"), status_style)).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .border_style(Style::default().fg(Color::Gray)),
+        );
         frame.render_widget(status, outer[2]);
 
         // User add popup

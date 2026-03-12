@@ -34,9 +34,11 @@ pub fn check_proxy_auth(req: &Request<Incoming>, users: &[UserConfig]) -> bool {
     };
 
     match credentials {
-        Some(cred) => cred
-            .split_once(':')
-            .is_some_and(|(user, pass)| users.iter().any(|u| u.username == user && u.password == pass)),
+        Some(cred) => cred.split_once(':').is_some_and(|(user, pass)| {
+            users
+                .iter()
+                .any(|u| u.username == user && u.password == pass)
+        }),
         None => false,
     }
 }
