@@ -42,7 +42,12 @@ pub async fn handle_request(
         return Ok(stealth::fake_404(&config.stealth.server_name));
     }
 
-    if !auth::check_proxy_auth(&req, &config.users) {
+    #[cfg(feature = "test-support")]
+    let auth_ok = config.skip_auth || auth::check_proxy_auth(&req, &config.users);
+    #[cfg(not(feature = "test-support"))]
+    let auth_ok = auth::check_proxy_auth(&req, &config.users);
+
+    if !auth_ok {
         return Ok(stealth::fake_404(&config.stealth.server_name));
     }
 
@@ -96,7 +101,10 @@ pub async fn serve_with_tls_acceptor(
                         .http1()
                         .preserve_header_case(true)
                         .title_case_headers(true);
-                    builder.http2().max_concurrent_streams(250);
+                    builder
+                        .http2()
+                        .max_concurrent_streams(250)
+                        .enable_connect_protocol();
                     let conn = builder.serve_connection_with_upgrades(io, service);
 
                     tokio::select! {

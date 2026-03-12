@@ -9,7 +9,7 @@ use tokio_util::sync::CancellationToken;
 
 use https_proxy::config::{AcmeConfig, Config, StealthConfig, UserConfig};
 
-use super::tls_fixture::{generate_test_tls, TlsFixture};
+use super::tls_fixture::generate_test_tls;
 
 pub struct TestServer {
     pub addr: SocketAddr,
@@ -19,14 +19,18 @@ pub struct TestServer {
 
 impl TestServer {
     pub async fn start(users: Vec<UserConfig>) -> Self {
+        Self::start_inner(users, false).await
+    }
+
+    pub async fn start_no_auth() -> Self {
+        Self::start_inner(vec![], true).await
+    }
+
+    async fn start_inner(users: Vec<UserConfig>, skip_auth: bool) -> Self {
         // Ensure CryptoProvider is installed (idempotent)
         let _ = tokio_rustls::rustls::crypto::ring::default_provider().install_default();
 
         let tls = generate_test_tls();
-        Self::start_with_tls(users, tls).await
-    }
-
-    async fn start_with_tls(users: Vec<UserConfig>, tls: TlsFixture) -> Self {
         let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
         let addr = listener.local_addr().unwrap();
 
@@ -41,6 +45,7 @@ impl TestServer {
             users,
             stealth: StealthConfig::default(),
             fast_open: false,
+            skip_auth,
         });
 
         let acceptor = TlsAcceptor::from(tls.server_config);

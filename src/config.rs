@@ -23,6 +23,10 @@ pub struct Config {
     /// Enable TCP Fast Open on listener and outgoing connections.
     #[serde(default)]
     pub fast_open: bool,
+    /// Skip proxy authentication (test-only, not serialized).
+    #[cfg(feature = "test-support")]
+    #[serde(skip)]
+    pub skip_auth: bool,
 }
 
 /// ACME certificate configuration.

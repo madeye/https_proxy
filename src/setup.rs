@@ -124,6 +124,8 @@ impl SetupApp {
                 server_name: self.stealth_server_name.clone(),
             },
             fast_open: false,
+            #[cfg(feature = "test-support")]
+            skip_auth: false,
         }
     }
 

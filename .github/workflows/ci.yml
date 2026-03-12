@@ -48,6 +48,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - run: cargo test
+  test-chrome:
+    name: Test (Chrome)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+      - run: cargo test --test chrome_tests
 
   build:
     name: Build (${{ matrix.target }})

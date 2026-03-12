@@ -115,6 +115,7 @@ async fn run_server(config_path: String) -> anyhow::Result<()> {
                     .title_case_headers(true)
                     .http2()
                     .max_concurrent_streams(250)
+                    .enable_connect_protocol()
                     .serve_connection_with_upgrades(io, service)
                     .await
             {
