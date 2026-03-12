@@ -85,7 +85,7 @@ impl SetupApp {
             domain: String::new(),
             acme_email: String::new(),
             acme_staging: false,
-            acme_cache_dir: "/var/lib/https-proxy/acme".into(),
+            acme_cache_dir: "/var/lib/https_proxy/acme".into(),
             stealth_server_name: "nginx/1.24.0".into(),
             users: Vec::new(),
             user_add: None,

@@ -12,7 +12,7 @@ use https_proxy::config::Config;
 use https_proxy::handle_request;
 
 #[derive(Parser)]
-#[command(name = "https-proxy", about = "Stealth HTTPS forward proxy")]
+#[command(name = "https_proxy", about = "Stealth HTTPS forward proxy")]
 struct Cli {
     #[command(subcommand)]
     command: Option<Command>,

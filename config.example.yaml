@@ -3,7 +3,7 @@ domain: "proxy.example.com"
 acme:
   email: "admin@example.com"
   staging: false
-  cache_dir: "/var/lib/https-proxy/acme"
+  cache_dir: "/var/lib/https_proxy/acme"
 users:
   - username: "alice"
     password: "hunter2"

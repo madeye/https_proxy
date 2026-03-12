@@ -11,14 +11,14 @@ use std::process::Command;
 use anyhow::{bail, Context};
 
 /// Systemd service name used for the unit file and `systemctl` commands.
-const SERVICE_NAME: &str = "https-proxy";
+const SERVICE_NAME: &str = "https_proxy";
 
 /// Install the proxy as a systemd service.
 ///
 /// Performs the following steps:
-/// 1. Copies the current binary to `/usr/local/bin/https-proxy`
-/// 2. Copies the config file to `/etc/https-proxy/config.yaml`
-/// 3. Writes a systemd unit file to `/etc/systemd/system/https-proxy.service`
+/// 1. Copies the current binary to `/usr/local/bin/https_proxy`
+/// 2. Copies the config file to `/etc/https_proxy/config.yaml`
+/// 3. Writes a systemd unit file to `/etc/systemd/system/https_proxy.service`
 /// 4. Runs `systemctl daemon-reload`, `enable`, and `restart`
 ///
 /// Requires root privileges.
@@ -46,9 +46,9 @@ pub fn install_service(config_path: String) -> anyhow::Result<()> {
     fs::copy(&exe, &installed_bin)
         .with_context(|| format!("failed to copy binary to {}", installed_bin.display()))?;
 
-    // Copy config to /etc/https-proxy/
-    let config_dir = Path::new("/etc/https-proxy");
-    fs::create_dir_all(config_dir).context("failed to create /etc/https-proxy/")?;
+    // Copy config to /etc/https_proxy/
+    let config_dir = Path::new("/etc/https_proxy");
+    fs::create_dir_all(config_dir).context("failed to create /etc/https_proxy/")?;
     let installed_config = config_dir.join("config.yaml");
     println!("Installing config to {}", installed_config.display());
     fs::copy(&config, &installed_config)
@@ -81,7 +81,7 @@ pub fn install_service(config_path: String) -> anyhow::Result<()> {
 /// Uninstall the systemd service.
 ///
 /// Stops and disables the service, removes the binary and unit file, but
-/// preserves `/etc/https-proxy/` (user configuration). Requires root.
+/// preserves `/etc/https_proxy/` (user configuration). Requires root.
 pub fn uninstall_service() -> anyhow::Result<()> {
     if !cfg!(target_os = "linux") {
         bail!("service uninstallation is only supported on Linux with systemd");
@@ -101,8 +101,8 @@ pub fn uninstall_service() -> anyhow::Result<()> {
         }
     }
 
-    // Keep /etc/https-proxy/ config dir (user data)
-    println!("Config directory /etc/https-proxy/ preserved.");
+    // Keep /etc/https_proxy/ config dir (user data)
+    println!("Config directory /etc/https_proxy/ preserved.");
 
     run_cmd("systemctl", &["daemon-reload"])?;
 
