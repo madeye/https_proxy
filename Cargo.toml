@@ -14,8 +14,8 @@ futures = "0.3"
 base64 = "0.22"
 clap = { version = "4", features = ["derive"] }
 http-body-util = "0.1"
-hyper = { version = "1", features = ["http1", "server", "client"] }
-hyper-util = { version = "0.1", features = ["tokio", "http1", "server-auto", "client-legacy"] }
+hyper = { version = "1", features = ["http1", "http2", "server", "client"] }
+hyper-util = { version = "0.1", features = ["tokio", "http1", "http2", "server-auto", "client-legacy"] }
 libc = "0.2"
 serde = { version = "1", features = ["derive"] }
 socket2 = { version = "0.5", features = ["all"] }

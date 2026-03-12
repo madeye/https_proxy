@@ -130,12 +130,16 @@ async fn run_server(config_path: String) -> anyhow::Result<()> {
                 async move { handle_request(req, &shared).await }
             });
 
-            if let Err(e) = hyper::server::conn::http1::Builder::new()
-                .preserve_header_case(true)
-                .title_case_headers(true)
-                .serve_connection(io, service)
-                .with_upgrades()
-                .await
+            if let Err(e) = hyper_util::server::conn::auto::Builder::new(
+                hyper_util::rt::TokioExecutor::new(),
+            )
+            .http1()
+            .preserve_header_case(true)
+            .title_case_headers(true)
+            .http2()
+            .max_concurrent_streams(250)
+            .serve_connection_with_upgrades(io, service)
+            .await
             {
                 error!("{peer_addr}: connection error: {e}");
             }
