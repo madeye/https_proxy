@@ -1,0 +1,24 @@
+[package]
+name = "https_proxy"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+futures = "0.3"
+base64 = "0.22"
+clap = { version = "4", features = ["derive"] }
+http-body-util = "0.1"
+hyper = { version = "1", features = ["http1", "server", "client"] }
+hyper-util = { version = "0.1", features = ["tokio", "http1", "server-auto", "client-legacy"] }
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9"
+tokio = { version = "1", features = ["full"] }
+tokio-rustls = "0.26"
+tokio-rustls-acme = { version = "0.6", features = ["axum"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[profile.release]
+strip = true
+lto = true

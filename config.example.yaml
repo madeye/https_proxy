@@ -1,0 +1,11 @@
+listen: "0.0.0.0:443"
+domain: "proxy.example.com"
+acme:
+  email: "admin@example.com"
+  staging: false
+  cache_dir: "/var/lib/https-proxy/acme"
+users:
+  - username: "alice"
+    password: "hunter2"
+stealth:
+  server_name: "nginx/1.24.0"

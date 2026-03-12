@@ -1,0 +1,52 @@
+use std::sync::Arc;
+
+use futures::StreamExt;
+use tokio_rustls::rustls::ServerConfig;
+use tokio_rustls_acme::caches::DirCache;
+use tokio_rustls_acme::{AcmeAcceptor, AcmeConfig};
+
+use crate::config::Config;
+
+pub struct AcmeSetup {
+    pub acceptor: AcmeAcceptor,
+    pub rustls_config: Arc<ServerConfig>,
+}
+
+pub fn build_acme_acceptor(config: &Config) -> anyhow::Result<AcmeSetup> {
+    let domain = config.domain.clone();
+    let cache_dir = config.acme.cache_dir.clone();
+    let acme_config = AcmeConfig::new([domain])
+        .contact_push(format!("mailto:{}", config.acme.email))
+        .cache(DirCache::new(cache_dir))
+        .directory_lets_encrypt(!config.acme.staging);
+
+    let mut state = acme_config.state();
+    let acceptor = state.acceptor();
+    let resolver = state.resolver();
+
+    let rustls_config = Arc::new(
+        ServerConfig::builder()
+            .with_no_client_auth()
+            .with_cert_resolver(resolver),
+    );
+
+    // Spawn the ACME event loop to drive cert issuance/renewal.
+    tokio::spawn(async move {
+        loop {
+            match state.next().await {
+                Some(Ok(event)) => {
+                    tracing::info!("ACME event: {:?}", event);
+                }
+                Some(Err(e)) => {
+                    tracing::error!("ACME error: {:?}", e);
+                }
+                None => break,
+            }
+        }
+    });
+
+    Ok(AcmeSetup {
+        acceptor,
+        rustls_config,
+    })
+}
