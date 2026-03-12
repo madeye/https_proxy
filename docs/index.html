@@ -367,6 +367,93 @@
       color: var(--text-muted);
     }
 
+    /* Download */
+    .download {
+      padding: 60px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .download-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .download-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      transition: border-color 0.15s ease;
+    }
+
+    .download-card:hover {
+      border-color: var(--text-muted);
+    }
+
+    .download-card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .download-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+    }
+
+    .download-card-header div h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .download-card-header div p {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .download-card .btn-download {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      background: var(--accent);
+      color: var(--bg);
+      transition: background 0.15s ease;
+    }
+
+    .download-card .btn-download:hover {
+      background: var(--accent-hover);
+    }
+
+    .download-card .download-meta {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .download-card .download-meta code {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: var(--bg);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
     /* Footer */
     footer {
       padding: 40px 0;
@@ -576,6 +663,44 @@
           <tr><td><code>setup.rs</code></td><td>Interactive TUI setup wizard</td></tr>
         </tbody>
       </table>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section class="download">
+    <div class="container">
+      <div class="section-title">Download</div>
+      <h2 class="section-heading">Prebuilt binaries &mdash; v0.1.0</h2>
+      <div class="download-grid">
+        <div class="download-card">
+          <div class="download-card-header">
+            <div class="download-card-icon" style="background: rgba(88,166,255,0.1); color: var(--accent);">&#x1f34e;</div>
+            <div>
+              <h3>macOS (ARM64)</h3>
+              <p>Apple Silicon &mdash; M1, M2, M3, M4</p>
+            </div>
+          </div>
+          <a href="https://github.com/madeye/https_proxy/releases/download/v0.1.0/https_proxy-v0.1.0-darwin-arm64.zip" class="btn-download">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+            Download .zip
+          </a>
+          <div class="download-meta"><code>https_proxy-v0.1.0-darwin-arm64.zip</code></div>
+        </div>
+        <div class="download-card">
+          <div class="download-card-header">
+            <div class="download-card-icon" style="background: rgba(63,185,80,0.1); color: var(--green);">&#x1f427;</div>
+            <div>
+              <h3>Linux (x86_64)</h3>
+              <p>GNU/Linux &mdash; AMD64 / Intel 64</p>
+            </div>
+          </div>
+          <a href="https://github.com/madeye/https_proxy/releases/download/v0.1.0/https_proxy-v0.1.0-linux-amd64.zip" class="btn-download">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
+            Download .zip
+          </a>
+          <div class="download-meta"><code>https_proxy-v0.1.0-linux-amd64.zip</code></div>
+        </div>
+      </div>
     </div>
   </section>
 
