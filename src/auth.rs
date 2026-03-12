@@ -1,3 +1,9 @@
+//! Proxy authentication via `Proxy-Authorization: Basic` header.
+//!
+//! Validates Base64-encoded credentials against the configured user list.
+//! Returns `false` (triggering a stealth 404) on missing, malformed, or
+//! incorrect credentials.
+
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use hyper::body::Incoming;
@@ -5,6 +11,11 @@ use hyper::Request;
 
 use crate::config::UserConfig;
 
+/// Check the `Proxy-Authorization` header against the allowed user list.
+///
+/// Returns `true` only if the header is present, uses the `Basic` scheme,
+/// decodes to valid UTF-8 in `username:password` form, and matches a
+/// configured user.
 pub fn check_proxy_auth(req: &Request<Incoming>, users: &[UserConfig]) -> bool {
     let header = req
         .headers()

@@ -13,8 +13,33 @@ A stealth HTTPS forward proxy in Rust. It auto-obtains TLS certificates via Let'
 
 ## Build
 
+Requires Rust 1.70+ and a C compiler (for `aws-lc-sys`/`ring` crypto backends).
+
 ```bash
+# Native release build (stripped, LTO enabled)
 cargo build --release
+
+# Cross-compile for Linux x86_64 from macOS (requires cargo-zigbuild + zig)
+rustup target add x86_64-unknown-linux-gnu
+cargo zigbuild --release --target x86_64-unknown-linux-gnu
+```
+
+### Prerequisites
+
+**macOS:**
+```bash
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# For cross-compilation to Linux
+brew install zig
+cargo install cargo-zigbuild
+```
+
+**Linux (Debian/Ubuntu):**
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+apt install build-essential cmake
 ```
 
 The release binary is stripped with LTO enabled (~3 MB).
@@ -35,6 +60,7 @@ users:
     password: "hunter2"
 stealth:
   server_name: "nginx/1.24.0"
+fast_open: true
 ```
 
 | Field | Description |
@@ -46,6 +72,7 @@ stealth:
 | `acme.cache_dir` | Directory to persist certificates |
 | `users` | List of authorized proxy credentials |
 | `stealth.server_name` | `Server` header in fake 404 responses |
+| `fast_open` | Enable TCP Fast Open on listener and outgoing connections |
 
 ## Quick Start
 
@@ -84,8 +111,10 @@ curl --proxy https://wrong:creds@proxy.example.com:443 https://example.com
 https-proxy [COMMAND]
 
 Commands:
-  setup    Interactive TUI to create config.yaml
-  run      Start the proxy server (default if no command given)
+  setup      Interactive TUI to create config.yaml
+  run        Start the proxy server (default if no command given)
+  install    Install as a systemd background service (Linux, requires root)
+  uninstall  Remove the systemd service
 ```
 
 ## How It Works

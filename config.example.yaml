@@ -9,3 +9,4 @@ users:
     password: "hunter2"
 stealth:
   server_name: "nginx/1.24.0"
+fast_open: true

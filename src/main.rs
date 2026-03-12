@@ -1,6 +1,21 @@
+//! Stealth HTTPS forward proxy.
+//!
+//! A forward proxy that auto-obtains TLS certificates via ACME/Let's Encrypt
+//! and disguises itself as a normal nginx web server. Unauthorized or non-proxy
+//! requests receive a fake nginx 404 page.
+//!
+//! # Request flow
+//!
+//! 1. TLS termination with automatic ACME cert provisioning ([`tls`])
+//! 2. Stealth gate — non-proxy traffic gets a fake 404 ([`stealth`])
+//! 3. Auth gate — invalid credentials get the same fake 404 ([`auth`])
+//! 4. CONNECT tunneling or HTTP forwarding to the target ([`proxy`])
+
 mod auth;
 mod config;
+mod net;
 mod proxy;
+mod service;
 mod setup;
 mod stealth;
 mod tls;
@@ -14,7 +29,6 @@ use hyper::body::{Bytes, Incoming};
 use hyper::service::service_fn;
 use hyper::{Method, Request, Response};
 use hyper_util::rt::TokioIo;
-use tokio::net::TcpListener;
 use tracing::{error, info};
 
 use crate::config::Config;
@@ -40,24 +54,35 @@ enum Command {
         #[arg(short, long, default_value = "config.yaml")]
         config: String,
     },
+    /// Install as a systemd background service (Linux only, requires root)
+    Install {
+        /// Path to config file
+        #[arg(short, long, default_value = "config.yaml")]
+        config: String,
+    },
+    /// Uninstall the systemd service (Linux only, requires root)
+    Uninstall,
 }
 
 fn main() -> anyhow::Result<()> {
+    tokio_rustls::rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("failed to install default CryptoProvider");
+
     let cli = Cli::parse();
 
     match cli.command {
         Some(Command::Setup { output }) => setup::run_setup(output),
         Some(Command::Run { config }) => run_server(config),
+        Some(Command::Install { config }) => service::install_service(config),
+        Some(Command::Uninstall) => service::uninstall_service(),
         None => run_server("config.yaml".into()),
     }
 }
 
+/// Start the proxy server: bind the listener, set up ACME, and accept connections.
 #[tokio::main]
 async fn run_server(config_path: String) -> anyhow::Result<()> {
-    tokio_rustls::rustls::crypto::aws_lc_rs::default_provider()
-        .install_default()
-        .expect("failed to install default CryptoProvider");
-
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env()
@@ -70,9 +95,7 @@ async fn run_server(config_path: String) -> anyhow::Result<()> {
 
     info!("starting proxy on {}", config.listen);
 
-    let listener = TcpListener::bind(&config.listen)
-        .await
-        .with_context(|| format!("bind {}", config.listen))?;
+    let listener = net::create_listener(&config.listen, config.fast_open).await?;
 
     let acme = tls::build_acme_acceptor(&config)?;
     let acceptor = acme.acceptor;
@@ -121,6 +144,7 @@ async fn run_server(config_path: String) -> anyhow::Result<()> {
     }
 }
 
+/// Route an incoming request through stealth detection, auth, and proxy handling.
 async fn handle_request(
     req: Request<Incoming>,
     config: &Config,
@@ -134,8 +158,8 @@ async fn handle_request(
     }
 
     if req.method() == Method::CONNECT {
-        proxy::handle_connect(req).await
+        proxy::handle_connect(req, config.fast_open).await
     } else {
-        proxy::handle_forward(req).await
+        proxy::handle_forward(req, config.fast_open).await
     }
 }

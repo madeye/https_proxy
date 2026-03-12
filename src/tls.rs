@@ -1,3 +1,10 @@
+//! TLS termination with automatic ACME certificate provisioning.
+//!
+//! Uses [`tokio_rustls_acme`] to obtain and renew Let's Encrypt certificates
+//! via the TLS-ALPN-01 challenge. ACME challenge connections are handled
+//! transparently by the [`AcmeAcceptor`]; regular connections proceed
+//! through the normal TLS handshake with the provisioned certificate.
+
 use std::sync::Arc;
 
 use futures::StreamExt;
@@ -7,11 +14,18 @@ use tokio_rustls_acme::{AcmeAcceptor, AcmeConfig};
 
 use crate::config::Config;
 
+/// Components needed to accept TLS connections with ACME support.
 pub struct AcmeSetup {
+    /// Acceptor that intercepts ACME challenges and passes regular connections through.
     pub acceptor: AcmeAcceptor,
+    /// TLS server configuration using the ACME-managed certificate resolver.
     pub rustls_config: Arc<ServerConfig>,
 }
 
+/// Build an [`AcmeAcceptor`] and TLS [`ServerConfig`] from the proxy configuration.
+///
+/// Spawns a background task that drives the ACME state machine, handling
+/// certificate issuance and renewal events.
 pub fn build_acme_acceptor(config: &Config) -> anyhow::Result<AcmeSetup> {
     let domain = config.domain.clone();
     let cache_dir = config.acme.cache_dir.clone();

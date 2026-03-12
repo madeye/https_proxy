@@ -1,14 +1,26 @@
+//! HTTP CONNECT tunneling and plain HTTP forwarding.
+//!
+//! - [`handle_connect`]: Upgrades the client connection and tunnels bytes
+//!   bidirectionally to the target via [`tokio::io::copy_bidirectional`].
+//! - [`handle_forward`]: Rewrites the absolute URI to path-only form, strips
+//!   proxy headers, and forwards the request via hyper's HTTP/1.1 client.
+
 use anyhow::Context;
-use hyper::body::Incoming;
+use http_body_util::{BodyExt, Full};
+use hyper::body::{Bytes, Incoming};
 use hyper::{Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
-use http_body_util::{Full, BodyExt};
-use hyper::body::Bytes;
-use tokio::net::TcpStream;
-use tracing::{info, error};
+use tracing::{error, info};
 
-/// Handle a CONNECT request: establish a TCP tunnel to the target.
-pub async fn handle_connect(req: Request<Incoming>) -> anyhow::Result<Response<Full<Bytes>>> {
+use crate::net;
+
+/// Handle an HTTP `CONNECT` request by establishing a TCP tunnel.
+///
+/// Returns `200 OK` immediately to the client, then spawns a background task
+/// that upgrades the connection and copies bytes bidirectionally between the
+/// client and the target host. Optionally uses TCP Fast Open for the outgoing
+/// connection when `fast_open` is `true`.
+pub async fn handle_connect(req: Request<Incoming>, fast_open: bool) -> anyhow::Result<Response<Full<Bytes>>> {
     let authority = req
         .uri()
         .authority()
@@ -31,7 +43,7 @@ pub async fn handle_connect(req: Request<Incoming>) -> anyhow::Result<Response<F
         match hyper::upgrade::on(req).await {
             Ok(upgraded) => {
                 let mut client = TokioIo::new(upgraded);
-                match TcpStream::connect(&addr).await {
+                match net::connect(&addr, fast_open).await {
                     Ok(mut target) => {
                         if let Err(e) =
                             tokio::io::copy_bidirectional(&mut client, &mut target).await
@@ -57,8 +69,13 @@ pub async fn handle_connect(req: Request<Incoming>) -> anyhow::Result<Response<F
         .unwrap())
 }
 
-/// Handle a plain HTTP forward proxy request (absolute URI).
-pub async fn handle_forward(mut req: Request<Incoming>) -> anyhow::Result<Response<Full<Bytes>>> {
+/// Handle a plain HTTP forward proxy request with an absolute URI.
+///
+/// Rewrites the request URI from absolute form (`http://host/path`) to
+/// path-only (`/path`), removes `Proxy-Authorization` and `Proxy-Connection`
+/// headers, connects to the upstream server, and relays the response back
+/// to the client.
+pub async fn handle_forward(mut req: Request<Incoming>, fast_open: bool) -> anyhow::Result<Response<Full<Bytes>>> {
     let uri = req.uri().clone();
     let host = uri
         .authority()
@@ -91,7 +108,7 @@ pub async fn handle_forward(mut req: Request<Incoming>) -> anyhow::Result<Respon
     headers.remove("proxy-connection");
 
     // Connect to the upstream server.
-    let stream = TcpStream::connect(&addr)
+    let stream = net::connect(&addr, fast_open)
         .await
         .with_context(|| format!("connect to {addr}"))?;
     let io = TokioIo::new(stream);

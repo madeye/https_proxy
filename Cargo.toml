@@ -2,6 +2,11 @@
 name = "https_proxy"
 version = "0.1.0"
 edition = "2021"
+description = "Stealth HTTPS forward proxy with automatic Let's Encrypt TLS and nginx camouflage"
+license = "MIT"
+repository = "https://github.com/madeye/https_proxy"
+keywords = ["proxy", "https", "tls", "acme", "stealth"]
+categories = ["network-programming", "command-line-utilities"]
 
 [dependencies]
 anyhow = "1"
@@ -11,11 +16,13 @@ clap = { version = "4", features = ["derive"] }
 http-body-util = "0.1"
 hyper = { version = "1", features = ["http1", "server", "client"] }
 hyper-util = { version = "0.1", features = ["tokio", "http1", "server-auto", "client-legacy"] }
+libc = "0.2"
 serde = { version = "1", features = ["derive"] }
+socket2 = { version = "0.5", features = ["all"] }
 serde_yaml = "0.9"
 tokio = { version = "1", features = ["full"] }
 tokio-rustls = "0.26"
-tokio-rustls-acme = { version = "0.6", features = ["axum"] }
+tokio-rustls-acme = { version = "0.9", features = ["axum"] }
 crossterm = "0.28"
 ratatui = "0.29"
 tracing = "0.1"

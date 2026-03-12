@@ -1,3 +1,10 @@
+//! Interactive TUI setup wizard for generating `config.yaml`.
+//!
+//! Provides a terminal form (built with [`ratatui`]) where the user can fill
+//! in the listen address, domain, ACME settings, stealth server name, and
+//! proxy users. The resulting configuration is written to disk via
+//! [`Config::save`](crate::config::Config::save).
+
 use std::path::PathBuf;
 
 use crossterm::event::{self, Event, KeyCode, KeyEventKind};
@@ -116,6 +123,7 @@ impl SetupApp {
             stealth: StealthConfig {
                 server_name: self.stealth_server_name.clone(),
             },
+            fast_open: false,
         }
     }
 
@@ -495,6 +503,7 @@ impl SetupApp {
     }
 }
 
+/// Launch the interactive TUI setup wizard and write the config to `output_path`.
 pub fn run_setup(output_path: String) -> anyhow::Result<()> {
     crossterm::terminal::enable_raw_mode()?;
     let mut stdout = std::io::stdout();
