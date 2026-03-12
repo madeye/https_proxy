@@ -48,7 +48,7 @@ pub async fn handle_request(
     let auth_ok = auth::check_proxy_auth(&req, &config.users);
 
     if !auth_ok {
-        return Ok(stealth::fake_404(&config.stealth.server_name));
+        return Ok(stealth::proxy_auth_required(&config.stealth.server_name));
     }
 
     if req.method() == Method::CONNECT {

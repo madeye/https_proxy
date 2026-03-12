@@ -27,7 +27,7 @@ Stealth HTTPS forward proxy that auto-obtains TLS certs via ACME/Let's Encrypt a
 
 ### Key Design Decisions
 
-- **Stealth over standards**: Auth failures return 404, not 407. The proxy is indistinguishable from a misconfigured nginx to scanners.
+- **Stealth for non-proxy traffic**: Non-proxy requests (no absolute URI, no CONNECT) return nginx 404. Proxy requests with missing/wrong auth get 407 so real clients (Chrome) can authenticate.
 - **hyper 1.x with upgrades**: `http1::Builder` must use `.with_upgrades()` for CONNECT tunneling to work.
 - **Proxy detection**: `req.uri().authority().is_some()` (absolute URI) or `Method::CONNECT`.
 - **ACME on port 443 only**: Uses TLS-ALPN-01 challenge type, no port 80 listener needed.

@@ -62,7 +62,7 @@ async fn test_curl_forward_through_proxy() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn test_curl_no_auth_gets_404() {
+async fn test_curl_no_auth_gets_407() {
     if !curl_available() {
         eprintln!("curl not found, skipping");
         return;
@@ -94,5 +94,8 @@ async fn test_curl_no_auth_gets_404() {
     .unwrap();
 
     let status_code = String::from_utf8_lossy(&output.stdout);
-    assert_eq!(status_code, "404", "missing auth should get stealth 404");
+    assert_eq!(
+        status_code, "407",
+        "missing auth on proxy request should get 407"
+    );
 }

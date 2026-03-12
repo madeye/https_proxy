@@ -1,8 +1,9 @@
 //! Stealth layer that hides the proxy from scanners and browsers.
 //!
-//! Non-proxy traffic (no absolute URI, no `CONNECT`) and failed auth both
-//! receive an identical nginx-style 404 response, making the proxy
-//! indistinguishable from a misconfigured web server.
+//! Non-proxy traffic (no absolute URI, no `CONNECT`) receives a nginx-style
+//! 404 response, making the proxy indistinguishable from a misconfigured web
+//! server. Proxy requests with missing/invalid auth get a `407` so that
+//! real clients (e.g. Chrome) can send credentials.
 
 use http_body_util::Full;
 use hyper::body::{Bytes, Incoming};
@@ -41,5 +42,20 @@ pub fn fake_404(server_name: &str) -> Response<Full<Bytes>> {
         .header("Content-Type", "text/html")
         .header("Content-Length", body.len().to_string())
         .body(Full::new(Bytes::from(body)))
+        .unwrap()
+}
+
+/// Build a 407 response requesting proxy authentication.
+///
+/// Sent when a proxy request (CONNECT or absolute URI) arrives without
+/// valid credentials. The `Proxy-Authenticate` header tells clients like
+/// Chrome to prompt for or resend credentials.
+pub fn proxy_auth_required(server_name: &str) -> Response<Full<Bytes>> {
+    Response::builder()
+        .status(StatusCode::PROXY_AUTHENTICATION_REQUIRED)
+        .header("Server", server_name)
+        .header("Proxy-Authenticate", "Basic realm=\"proxy\"")
+        .header("Content-Length", "0")
+        .body(Full::new(Bytes::new()))
         .unwrap()
 }
