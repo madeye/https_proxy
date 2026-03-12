@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Config {
     pub listen: String,
     pub domain: String,
@@ -11,7 +11,7 @@ pub struct Config {
     pub stealth: StealthConfig,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct AcmeConfig {
     pub email: String,
     #[serde(default)]
@@ -19,13 +19,13 @@ pub struct AcmeConfig {
     pub cache_dir: PathBuf,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct UserConfig {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct StealthConfig {
     #[serde(default = "default_server_name")]
     pub server_name: String,
@@ -48,5 +48,11 @@ impl Config {
         let content = std::fs::read_to_string(path)?;
         let config: Config = serde_yaml::from_str(&content)?;
         Ok(config)
+    }
+
+    pub fn save(&self, path: &str) -> anyhow::Result<()> {
+        let content = serde_yaml::to_string(self)?;
+        std::fs::write(path, content)?;
+        Ok(())
     }
 }
