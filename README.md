@@ -9,6 +9,7 @@ A stealth HTTPS forward proxy in Rust. It auto-obtains TLS certificates via Let'
 - **CONNECT tunneling** — Full HTTPS tunnel support for proxying TLS traffic
 - **HTTP forwarding** — Plain HTTP proxy requests forwarded to upstream servers
 - **Multi-user auth** — Basic auth with multiple username/password pairs
+- **TUI setup wizard** — Interactive terminal UI to generate `config.yaml`
 
 ## Build
 
@@ -46,11 +47,24 @@ stealth:
 | `users` | List of authorized proxy credentials |
 | `stealth.server_name` | `Server` header in fake 404 responses |
 
+## Quick Start
+
+```bash
+# Generate config interactively
+./target/release/https_proxy setup
+
+# Or copy and edit the example
+cp config.example.yaml config.yaml
+```
+
 ## Usage
 
 ```bash
 # Start the proxy (requires port 443 and a DNS record pointing to this server)
-./target/release/https_proxy --config config.yaml
+./target/release/https_proxy run --config config.yaml
+
+# Or just run with default config.yaml
+./target/release/https_proxy
 
 # Use as HTTPS proxy
 curl --proxy https://alice:hunter2@proxy.example.com:443 https://httpbin.org/ip
@@ -62,6 +76,16 @@ curl https://proxy.example.com/
 # Wrong credentials — same 404, no information leak
 curl --proxy https://wrong:creds@proxy.example.com:443 https://example.com
 # => 404 Not Found
+```
+
+## CLI
+
+```
+https-proxy [COMMAND]
+
+Commands:
+  setup    Interactive TUI to create config.yaml
+  run      Start the proxy server (default if no command given)
 ```
 
 ## How It Works
