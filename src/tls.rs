@@ -8,6 +8,7 @@
 use std::sync::Arc;
 
 use futures::StreamExt;
+use tokio_rustls::rustls::version::{TLS12, TLS13};
 use tokio_rustls::rustls::ServerConfig;
 use tokio_rustls_acme::caches::DirCache;
 use tokio_rustls_acme::{AcmeAcceptor, AcmeConfig};
@@ -38,11 +39,11 @@ pub fn build_acme_acceptor(config: &Config) -> anyhow::Result<AcmeSetup> {
     let acceptor = state.acceptor();
     let resolver = state.resolver();
 
-    let rustls_config = Arc::new(
-        ServerConfig::builder()
-            .with_no_client_auth()
-            .with_cert_resolver(resolver),
-    );
+    let mut rustls_config = ServerConfig::builder_with_protocol_versions(&[&TLS13, &TLS12])
+        .with_no_client_auth()
+        .with_cert_resolver(resolver);
+    rustls_config.alpn_protocols = vec![b"h2".to_vec(), b"http/1.1".to_vec()];
+    let rustls_config = Arc::new(rustls_config);
 
     // Spawn the ACME event loop to drive cert issuance/renewal.
     tokio::spawn(async move {
