@@ -9,9 +9,9 @@ cargo build              # dev build
 cargo build --release    # release build (stripped, LTO)
 cargo check              # type-check without building
 cargo clippy             # lint
+cargo test                     # run all integration tests
+cargo test --test stealth_tests  # run specific test file
 ```
-
-No tests exist yet. No CI pipeline.
 
 ## Architecture
 

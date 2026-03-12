@@ -1,37 +1,15 @@
-//! Stealth HTTPS forward proxy.
-//!
-//! A forward proxy that auto-obtains TLS certificates via ACME/Let's Encrypt
-//! and disguises itself as a normal nginx web server. Unauthorized or non-proxy
-//! requests receive a fake nginx 404 page.
-//!
-//! # Request flow
-//!
-//! 1. TLS termination with automatic ACME cert provisioning ([`tls`])
-//! 2. Stealth gate — non-proxy traffic gets a fake 404 ([`stealth`])
-//! 3. Auth gate — invalid credentials get the same fake 404 ([`auth`])
-//! 4. CONNECT tunneling or HTTP forwarding to the target ([`proxy`])
-
-mod auth;
-mod config;
-mod net;
-mod proxy;
-mod service;
-mod setup;
-mod stealth;
-mod tls;
-
 use std::sync::Arc;
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use http_body_util::Full;
-use hyper::body::{Bytes, Incoming};
+use hyper::body::Incoming;
 use hyper::service::service_fn;
-use hyper::{Method, Request, Response};
+use hyper::Request;
 use hyper_util::rt::TokioIo;
 use tracing::{error, info};
 
-use crate::config::Config;
+use https_proxy::config::Config;
+use https_proxy::handle_request;
 
 #[derive(Parser)]
 #[command(name = "https-proxy", about = "Stealth HTTPS forward proxy")]
@@ -72,10 +50,10 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Command::Setup { output }) => setup::run_setup(output),
+        Some(Command::Setup { output }) => https_proxy::setup::run_setup(output),
         Some(Command::Run { config }) => run_server(config),
-        Some(Command::Install { config }) => service::install_service(config),
-        Some(Command::Uninstall) => service::uninstall_service(),
+        Some(Command::Install { config }) => https_proxy::service::install_service(config),
+        Some(Command::Uninstall) => https_proxy::service::uninstall_service(),
         None => run_server("config.yaml".into()),
     }
 }
@@ -94,9 +72,9 @@ async fn run_server(config_path: String) -> anyhow::Result<()> {
 
     info!("starting proxy on {}", config.listen);
 
-    let listener = net::create_listener(&config.listen, config.fast_open).await?;
+    let listener = https_proxy::net::create_listener(&config.listen, config.fast_open).await?;
 
-    let acme = tls::build_acme_acceptor(&config)?;
+    let acme = https_proxy::tls::build_acme_acceptor(&config)?;
     let acceptor = acme.acceptor;
     let rustls_config = acme.rustls_config;
 
@@ -130,39 +108,18 @@ async fn run_server(config_path: String) -> anyhow::Result<()> {
                 async move { handle_request(req, &shared).await }
             });
 
-            if let Err(e) = hyper_util::server::conn::auto::Builder::new(
-                hyper_util::rt::TokioExecutor::new(),
-            )
-            .http1()
-            .preserve_header_case(true)
-            .title_case_headers(true)
-            .http2()
-            .max_concurrent_streams(250)
-            .serve_connection_with_upgrades(io, service)
-            .await
+            if let Err(e) =
+                hyper_util::server::conn::auto::Builder::new(hyper_util::rt::TokioExecutor::new())
+                    .http1()
+                    .preserve_header_case(true)
+                    .title_case_headers(true)
+                    .http2()
+                    .max_concurrent_streams(250)
+                    .serve_connection_with_upgrades(io, service)
+                    .await
             {
                 error!("{peer_addr}: connection error: {e}");
             }
         });
-    }
-}
-
-/// Route an incoming request through stealth detection, auth, and proxy handling.
-async fn handle_request(
-    req: Request<Incoming>,
-    config: &Config,
-) -> Result<Response<Full<Bytes>>, anyhow::Error> {
-    if !stealth::is_proxy_request(&req) {
-        return Ok(stealth::fake_404(&config.stealth.server_name));
-    }
-
-    if !auth::check_proxy_auth(&req, &config.users) {
-        return Ok(stealth::fake_404(&config.stealth.server_name));
-    }
-
-    if req.method() == Method::CONNECT {
-        proxy::handle_connect(req, config.fast_open).await
-    } else {
-        proxy::handle_forward(req, config.fast_open).await
     }
 }
