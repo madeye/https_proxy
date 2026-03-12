@@ -1,2 +1,10 @@
 /target
 *.zip
+
+# Sensitive files
+config.yaml
+*.pem
+*.key
+*.crt
+.env
+.env.*
