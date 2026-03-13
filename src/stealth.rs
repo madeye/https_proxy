@@ -64,7 +64,7 @@ pub fn proxy_auth_required(server_name: &str) -> Response<Full<Bytes>> {
     Response::builder()
         .status(StatusCode::PROXY_AUTHENTICATION_REQUIRED)
         .header("Server", server_name)
-        .header("Proxy-Authenticate", "Basic realm=\"proxy\"")
+        .header("Proxy-Authenticate", "Basic realm=\"Restricted\"")
         .header("Content-Length", "0")
         .body(Full::new(Bytes::new()))
         .unwrap()
