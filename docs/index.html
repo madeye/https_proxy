@@ -556,6 +556,16 @@
           <h3>TUI Setup Wizard</h3>
           <p>Interactive terminal UI to generate your configuration file. No manual YAML editing required.</p>
         </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(210,153,34,0.1); color: var(--orange);">&#x26a1;</div>
+          <h3>TCP Fast Open</h3>
+          <p>Reduced latency on both inbound and outbound connections with TFO support on Linux and macOS.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon" style="background: rgba(188,140,255,0.1); color: var(--purple);">&#x2699;&#xfe0f;</div>
+          <h3>Systemd Service</h3>
+          <p>Built-in install and uninstall commands generate a systemd unit file for seamless background operation.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -678,7 +688,9 @@
           <tr><td><code>auth.rs</code></td><td>Validates Proxy-Authorization Basic credentials</td></tr>
           <tr><td><code>proxy.rs</code></td><td>CONNECT tunneling and HTTP request forwarding</td></tr>
           <tr><td><code>config.rs</code></td><td>YAML config loading and validation</td></tr>
+          <tr><td><code>net.rs</code></td><td>TCP listener with Fast Open, outbound connection helpers</td></tr>
           <tr><td><code>setup.rs</code></td><td>Interactive TUI setup wizard</td></tr>
+          <tr><td><code>service.rs</code></td><td>Systemd service install and uninstall</td></tr>
         </tbody>
       </table>
     </div>
@@ -688,7 +700,7 @@
   <section class="download">
     <div class="container">
       <div class="section-title">Download</div>
-      <h2 class="section-heading">Prebuilt binaries &mdash; v0.2.0</h2>
+      <h2 class="section-heading">Prebuilt binaries &mdash; v0.3.0</h2>
       <div class="download-grid">
         <div class="download-card">
           <div class="download-card-header">
@@ -698,11 +710,11 @@
               <p>Apple Silicon &mdash; M1, M2, M3, M4</p>
             </div>
           </div>
-          <a href="https://github.com/madeye/https_proxy/releases/download/v0.2.0/https_proxy-v0.2.0-darwin-arm64.zip" class="btn-download">
+          <a href="https://github.com/madeye/https_proxy/releases/download/v0.3.0/https_proxy-v0.3.0-darwin-arm64.zip" class="btn-download">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
             Download .zip
           </a>
-          <div class="download-meta"><code>https_proxy-v0.2.0-darwin-arm64.zip</code></div>
+          <div class="download-meta"><code>https_proxy-v0.3.0-darwin-arm64.zip</code></div>
         </div>
         <div class="download-card">
           <div class="download-card-header">
@@ -712,11 +724,11 @@
               <p>GNU/Linux &mdash; AMD64 / Intel 64</p>
             </div>
           </div>
-          <a href="https://github.com/madeye/https_proxy/releases/download/v0.2.0/https_proxy-v0.2.0-linux-amd64.zip" class="btn-download">
+          <a href="https://github.com/madeye/https_proxy/releases/download/v0.3.0/https_proxy-v0.3.0-linux-amd64.zip" class="btn-download">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M2.75 14A1.75 1.75 0 0 1 1 12.25v-2.5a.75.75 0 0 1 1.5 0v2.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25v-2.5a.75.75 0 0 1 1.5 0v2.5A1.75 1.75 0 0 1 13.25 14Z"/><path d="M7.25 7.689V2a.75.75 0 0 1 1.5 0v5.689l1.97-1.969a.749.749 0 1 1 1.06 1.06l-3.25 3.25a.749.749 0 0 1-1.06 0L4.22 6.78a.749.749 0 1 1 1.06-1.06l1.97 1.969Z"/></svg>
             Download .zip
           </a>
-          <div class="download-meta"><code>https_proxy-v0.2.0-linux-amd64.zip</code></div>
+          <div class="download-meta"><code>https_proxy-v0.3.0-linux-amd64.zip</code></div>
         </div>
       </div>
     </div>
