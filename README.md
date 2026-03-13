@@ -5,8 +5,8 @@ A stealth HTTPS forward proxy in Rust. It auto-obtains TLS certificates via Let'
 ## Features
 
 - **Automatic TLS** — Certificates issued and renewed via ACME (TLS-ALPN-01 on port 443, no port 80 needed)
-- **Stealth mode** — Non-proxy requests get an identical nginx-style 404; proxy requests with bad auth get a standard 407 so real clients (Chrome, curl) can authenticate
-- **HTTP/2 support** — Full HTTP/2 with extended CONNECT protocol (RFC 8441) for browser compatibility
+- **Stealth mode** — Non-proxy requests get an identical nginx-style 404 over both HTTP/1.1 and HTTP/2; proxy requests with bad auth get a standard 407 so real clients (Chrome, curl) can authenticate
+- **HTTP/2 support** — Full HTTP/2 with extended CONNECT protocol (RFC 8441) for browser compatibility; correct stealth behavior for HTTP/2 clients
 - **CONNECT tunneling** — Full HTTPS tunnel support for proxying TLS traffic
 - **HTTP forwarding** — Plain HTTP proxy requests forwarded to upstream servers
 - **Multi-user auth** — Basic auth with multiple username/password pairs
@@ -20,9 +20,9 @@ Requires Rust 1.70+ and a C compiler (for `aws-lc-sys`/`ring` crypto backends).
 # Native release build (stripped, LTO enabled)
 cargo build --release
 
-# Cross-compile for Linux x86_64 from macOS (requires cargo-zigbuild + zig)
-rustup target add x86_64-unknown-linux-gnu
-cargo zigbuild --release --target x86_64-unknown-linux-gnu
+# Cross-compile for Linux x86_64 from macOS (requires Docker)
+docker run --platform linux/amd64 --rm -v "$(pwd)":/src -w /src \
+  rust:latest cargo build --release --target x86_64-unknown-linux-gnu
 ```
 
 ### Prerequisites
@@ -33,8 +33,7 @@ cargo zigbuild --release --target x86_64-unknown-linux-gnu
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # For cross-compilation to Linux
-brew install zig
-cargo install cargo-zigbuild
+# Docker Desktop required
 ```
 
 **Linux (Debian/Ubuntu):**
@@ -43,7 +42,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 apt install build-essential cmake
 ```
 
-The release binary is stripped with LTO enabled (~3 MB).
+The release binary is stripped with LTO enabled (~7 MB).
 
 ## Configuration
 
@@ -117,7 +116,7 @@ Commands:
 ## How It Works
 
 1. All connections terminate TLS with a valid Let's Encrypt certificate (HTTP/1.1 and HTTP/2)
-2. Requests without an absolute URI or CONNECT method are treated as probes → fake nginx 404
+2. Requests without an absolute URI (HTTP/1.1) or CONNECT method (HTTP/1.1 and HTTP/2) are treated as probes → fake nginx 404
 3. Proxy requests with missing or invalid credentials → 407 with `Proxy-Authenticate` header (enables browser auth prompts)
 4. Authenticated CONNECT requests → TCP tunnel via HTTP upgrade + bidirectional copy
 5. Authenticated HTTP requests → forwarded to upstream with proxy headers stripped
