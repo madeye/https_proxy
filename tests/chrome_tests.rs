@@ -171,3 +171,90 @@ async fn test_chrome_gets_407_when_auth_required() {
         "Should get auth challenge, not tunnel failure"
     );
 }
+
+/// Chrome navigates directly to the proxy URL (not using it as a proxy).
+/// Should get the stealth nginx 404 page, not a 407. Chrome uses HTTP/2
+/// over TLS, which previously triggered a false positive in is_proxy_request.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn test_chrome_direct_visit_gets_stealth_404() {
+    let chrome = match chrome_path() {
+        Some(p) => p,
+        None => {
+            eprintln!("Chrome/Chromium not found, skipping");
+            return;
+        }
+    };
+
+    let server = TestServer::start(test_users()).await;
+
+    // Navigate directly to the proxy (no --proxy-server flag)
+    let url = format!("https://127.0.0.1:{}/", server.addr.port());
+
+    let output = tokio::task::spawn_blocking(move || {
+        std::process::Command::new(&chrome)
+            .arg("--headless=new")
+            .arg("--disable-gpu")
+            .arg("--no-sandbox")
+            .arg("--disable-software-rasterizer")
+            .arg("--timeout=10000")
+            .arg("--ignore-certificate-errors")
+            .arg("--dump-dom")
+            .arg(&url)
+            .output()
+            .unwrap()
+    })
+    .await
+    .unwrap();
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert!(
+        stdout.contains("404 Not Found"),
+        "Direct visit should see stealth 404 page, not 407.\nSTDOUT: {stdout}\nSTDERR: {stderr}"
+    );
+    assert!(
+        stdout.contains("nginx/1.24.0"),
+        "Stealth 404 should mimic nginx.\nSTDOUT: {stdout}\nSTDERR: {stderr}"
+    );
+}
+
+/// Chrome navigates directly to a subpath on the proxy — should still get stealth 404.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn test_chrome_direct_visit_subpath_gets_stealth_404() {
+    let chrome = match chrome_path() {
+        Some(p) => p,
+        None => {
+            eprintln!("Chrome/Chromium not found, skipping");
+            return;
+        }
+    };
+
+    let server = TestServer::start(test_users()).await;
+
+    let url = format!("https://127.0.0.1:{}/some/random/path", server.addr.port());
+
+    let output = tokio::task::spawn_blocking(move || {
+        std::process::Command::new(&chrome)
+            .arg("--headless=new")
+            .arg("--disable-gpu")
+            .arg("--no-sandbox")
+            .arg("--disable-software-rasterizer")
+            .arg("--timeout=10000")
+            .arg("--ignore-certificate-errors")
+            .arg("--dump-dom")
+            .arg(&url)
+            .output()
+            .unwrap()
+    })
+    .await
+    .unwrap();
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let stderr = String::from_utf8_lossy(&output.stderr);
+
+    assert!(
+        stdout.contains("404 Not Found"),
+        "Direct visit to subpath should see stealth 404.\nSTDOUT: {stdout}\nSTDERR: {stderr}"
+    );
+}

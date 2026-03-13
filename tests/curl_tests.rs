@@ -99,3 +99,76 @@ async fn test_curl_no_auth_gets_407() {
         "missing auth on proxy request should get 407"
     );
 }
+
+/// Curl the proxy directly (not as a proxy) with HTTP/1.1 — should get stealth 404.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn test_curl_direct_http1_gets_stealth_404() {
+    if !curl_available() {
+        eprintln!("curl not found, skipping");
+        return;
+    }
+
+    let server = TestServer::start(test_users()).await;
+    let url = format!("https://127.0.0.1:{}/", server.addr.port());
+
+    let output = tokio::task::spawn_blocking(move || {
+        std::process::Command::new("curl")
+            .arg("--silent")
+            .arg("--max-time")
+            .arg("5")
+            .arg("--insecure")
+            .arg("--http1.1")
+            .arg("--write-out")
+            .arg("%{http_code}")
+            .arg("--output")
+            .arg("/dev/null")
+            .arg(&url)
+            .output()
+            .unwrap()
+    })
+    .await
+    .unwrap();
+
+    let status_code = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(
+        status_code, "404",
+        "direct HTTP/1.1 request should get stealth 404"
+    );
+}
+
+/// Curl the proxy directly (not as a proxy) with HTTP/2 — should get stealth 404, not 407.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn test_curl_direct_request_gets_stealth_404() {
+    if !curl_available() {
+        eprintln!("curl not found, skipping");
+        return;
+    }
+
+    let server = TestServer::start(test_users()).await;
+
+    // Direct request to the proxy (no --proxy flag) — this is a non-proxy request
+    let url = format!("https://127.0.0.1:{}/", server.addr.port());
+
+    let output = tokio::task::spawn_blocking(move || {
+        std::process::Command::new("curl")
+            .arg("--silent")
+            .arg("--max-time")
+            .arg("5")
+            .arg("--insecure")
+            .arg("--write-out")
+            .arg("%{http_code}")
+            .arg("--output")
+            .arg("/dev/null")
+            .arg(&url)
+            .output()
+            .unwrap()
+    })
+    .await
+    .unwrap();
+
+    let status_code = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(
+        status_code, "404",
+        "direct (non-proxy) request should get stealth 404, not 407"
+    );
+}
