@@ -5,9 +5,11 @@
 //! server. Proxy requests with missing/invalid auth get a `407` so that
 //! real clients (e.g. Chrome) can send credentials.
 
-use http_body_util::Full;
+use http_body_util::{Either, Full};
 use hyper::body::{Bytes, Incoming};
 use hyper::{Method, Request, Response, StatusCode, Version};
+
+use crate::ProxyBody;
 
 /// Returns `true` if the request is a proxy request.
 ///
@@ -35,7 +37,7 @@ pub fn is_proxy_request(req: &Request<Incoming>) -> bool {
 ///
 /// The response includes the configured `Server` header and an HTML body
 /// identical to what nginx produces for a missing page.
-pub fn fake_404(server_name: &str) -> Response<Full<Bytes>> {
+pub fn fake_404(server_name: &str) -> Response<ProxyBody> {
     let body = concat!(
         "<html>\r\n",
         "<head><title>404 Not Found</title></head>\r\n",
@@ -51,7 +53,7 @@ pub fn fake_404(server_name: &str) -> Response<Full<Bytes>> {
         .header("Server", server_name)
         .header("Content-Type", "text/html")
         .header("Content-Length", body.len().to_string())
-        .body(Full::new(Bytes::from(body)))
+        .body(Either::Left(Full::new(Bytes::from(body))))
         .unwrap()
 }
 
@@ -60,12 +62,12 @@ pub fn fake_404(server_name: &str) -> Response<Full<Bytes>> {
 /// Sent when a proxy request (CONNECT or absolute URI) arrives without
 /// valid credentials. The `Proxy-Authenticate` header tells clients like
 /// Chrome to prompt for or resend credentials.
-pub fn proxy_auth_required(server_name: &str) -> Response<Full<Bytes>> {
+pub fn proxy_auth_required(server_name: &str) -> Response<ProxyBody> {
     Response::builder()
         .status(StatusCode::PROXY_AUTHENTICATION_REQUIRED)
         .header("Server", server_name)
         .header("Proxy-Authenticate", "Basic realm=\"Restricted\"")
         .header("Content-Length", "0")
-        .body(Full::new(Bytes::new()))
+        .body(Either::Left(Full::new(Bytes::new())))
         .unwrap()
 }

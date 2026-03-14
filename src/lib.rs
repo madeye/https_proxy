@@ -22,11 +22,14 @@ pub mod tls;
 
 use std::sync::Arc;
 
-use http_body_util::Full;
+use http_body_util::{Either, Full};
 use hyper::body::{Bytes, Incoming};
 use hyper::service::service_fn;
 use hyper::{Method, Request, Response};
 use hyper_util::rt::TokioIo;
+
+/// Response body type: either a buffered `Full<Bytes>` or a streaming `Incoming`.
+pub type ProxyBody = Either<Full<Bytes>, Incoming>;
 use tokio_rustls::TlsAcceptor;
 use tokio_util::sync::CancellationToken;
 use tracing::error;
@@ -37,7 +40,7 @@ use crate::config::Config;
 pub async fn handle_request(
     req: Request<Incoming>,
     config: &Config,
-) -> Result<Response<Full<Bytes>>, anyhow::Error> {
+) -> Result<Response<ProxyBody>, anyhow::Error> {
     if !stealth::is_proxy_request(&req) {
         return Ok(stealth::fake_404(&config.stealth.server_name));
     }
