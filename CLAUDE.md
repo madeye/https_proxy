@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Setup
+
+```bash
+git config core.hooksPath .githooks   # enable pre-commit fmt check
+```
+
 ## Build Commands
 
 ```bash

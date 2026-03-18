@@ -1,0 +1,6 @@
+#!/bin/sh
+
+if ! cargo fmt -- --check 2>/dev/null; then
+    echo "Error: cargo fmt check failed. Run 'cargo fmt' and stage the changes."
+    exit 1
+fi

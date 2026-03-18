@@ -121,6 +121,16 @@ Commands:
 4. Authenticated CONNECT requests → TCP tunnel via HTTP upgrade + bidirectional copy
 5. Authenticated HTTP requests → forwarded to upstream with proxy headers stripped
 
+## Development
+
+After cloning, enable the pre-commit hook to catch formatting issues before they reach CI:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hook runs `cargo fmt --check` and blocks commits with unformatted code.
+
 ## Testing
 
 ```bash
