@@ -20,8 +20,7 @@ async fn test_connect_tunnel_throughput() {
     let data = DataServer::start(CONNECT_SIZE).await;
     let server = TestServer::start_no_auth().await;
 
-    let proxy = reqwest::Proxy::all(server.proxy_url())
-        .unwrap();
+    let proxy = reqwest::Proxy::all(server.proxy_url()).unwrap();
 
     let ca_cert = reqwest::tls::Certificate::from_pem(server.ca_pem.as_bytes()).unwrap();
 
@@ -34,7 +33,14 @@ async fn test_connect_tunnel_throughput() {
     let url = format!("http://127.0.0.1:{}/data", data.addr.port());
 
     // Warm up
-    let _ = client.get(&url).send().await.unwrap().bytes().await.unwrap();
+    let _ = client
+        .get(&url)
+        .send()
+        .await
+        .unwrap()
+        .bytes()
+        .await
+        .unwrap();
 
     let start = Instant::now();
     let resp = client.get(&url).send().await.unwrap();
@@ -61,8 +67,7 @@ async fn test_http_forward_throughput() {
     let data = DataServer::start(FORWARD_SIZE).await;
     let server = TestServer::start_no_auth().await;
 
-    let proxy = reqwest::Proxy::http(server.proxy_url())
-        .unwrap();
+    let proxy = reqwest::Proxy::http(server.proxy_url()).unwrap();
 
     let ca_cert = reqwest::tls::Certificate::from_pem(server.ca_pem.as_bytes()).unwrap();
 
@@ -75,7 +80,14 @@ async fn test_http_forward_throughput() {
     let url = format!("http://127.0.0.1:{}/data", data.addr.port());
 
     // Warm up
-    let _ = client.get(&url).send().await.unwrap().bytes().await.unwrap();
+    let _ = client
+        .get(&url)
+        .send()
+        .await
+        .unwrap()
+        .bytes()
+        .await
+        .unwrap();
 
     let start = Instant::now();
     let resp = client.get(&url).send().await.unwrap();
@@ -102,8 +114,7 @@ async fn test_http_forward_request_rate() {
     let echo = EchoServer::start().await;
     let server = TestServer::start_no_auth().await;
 
-    let proxy = reqwest::Proxy::http(server.proxy_url())
-        .unwrap();
+    let proxy = reqwest::Proxy::http(server.proxy_url()).unwrap();
 
     let ca_cert = reqwest::tls::Certificate::from_pem(server.ca_pem.as_bytes()).unwrap();
 
@@ -116,7 +127,14 @@ async fn test_http_forward_request_rate() {
     let url = format!("http://127.0.0.1:{}/ping", echo.addr.port());
 
     // Warm up
-    let _ = client.get(&url).send().await.unwrap().bytes().await.unwrap();
+    let _ = client
+        .get(&url)
+        .send()
+        .await
+        .unwrap()
+        .bytes()
+        .await
+        .unwrap();
 
     let start = Instant::now();
     for _ in 0..REQUEST_COUNT {

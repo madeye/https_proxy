@@ -21,9 +21,12 @@ use crate::ProxyBody;
 const TUNNEL_BUF_SIZE: usize = 128 * 1024;
 
 /// Global pooled HTTP/1.1 client for forward proxying (non-TFO path).
-static POOLED_CLIENT: std::sync::OnceLock<Client<hyper_util::client::legacy::connect::HttpConnector, Incoming>> = std::sync::OnceLock::new();
+static POOLED_CLIENT: std::sync::OnceLock<
+    Client<hyper_util::client::legacy::connect::HttpConnector, Incoming>,
+> = std::sync::OnceLock::new();
 
-fn get_pooled_client() -> &'static Client<hyper_util::client::legacy::connect::HttpConnector, Incoming> {
+fn get_pooled_client(
+) -> &'static Client<hyper_util::client::legacy::connect::HttpConnector, Incoming> {
     POOLED_CLIENT.get_or_init(|| {
         Client::builder(TokioExecutor::new())
             .pool_idle_timeout(std::time::Duration::from_secs(90))
@@ -66,8 +69,13 @@ pub async fn handle_connect(
                 let mut client = TokioIo::new(upgraded);
                 match net::connect(&addr, fast_open).await {
                     Ok(mut target) => {
-                        if let Err(e) =
-                            tokio::io::copy_bidirectional_with_sizes(&mut client, &mut target, TUNNEL_BUF_SIZE, TUNNEL_BUF_SIZE).await
+                        if let Err(e) = tokio::io::copy_bidirectional_with_sizes(
+                            &mut client,
+                            &mut target,
+                            TUNNEL_BUF_SIZE,
+                            TUNNEL_BUF_SIZE,
+                        )
+                        .await
                         {
                             error!("tunnel {addr} io error: {e}");
                         }
@@ -161,10 +169,7 @@ pub async fn handle_forward(
     } else {
         // Pooled client path: connection reuse, automatic URI handling
         let client = get_pooled_client();
-        let resp = client
-            .request(req)
-            .await
-            .context("pooled client request")?;
+        let resp = client.request(req).await.context("pooled client request")?;
 
         let (parts, body) = resp.into_parts();
         Ok(Response::from_parts(parts, Either::Right(body)))
